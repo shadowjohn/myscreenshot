@@ -194,7 +194,7 @@ namespace myscreenshot
 
         private void Form1_Deactivate(object sender, EventArgs e)
         {
-            driver.Dispose();
+            //driver.Dispose();
         }
     }
 }

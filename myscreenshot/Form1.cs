@@ -52,13 +52,20 @@ namespace myscreenshot
                 return;
             }
             browser.Navigation.LoadUrl(URL);
-            
+            browser.Navigation.NavigationFinished += Navigation_NavigationFinished;
         }
 
-        private void wB_Navigated(object sender, WebBrowserNavigatedEventArgs e)
+        private void Navigation_NavigationFinished(object sender, DotNetBrowser.Navigation.Events.NavigationFinishedEventArgs e)
         {
-            //textBox1.Text = wB.Url.ToString();
+            
+            UpdateUIText(textBox1, e.Url);
+            //throw new NotImplementedException();
         }
+
+        //private void wB_Navigated(object sender, WebBrowserNavigatedEventArgs e)
+        //{
+        //textBox1.Text = wB.Url.ToString();
+        //}
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -226,6 +233,8 @@ namespace myscreenshot
         private void Form1_Deactivate(object sender, EventArgs e)
         {
             //driver.Dispose();
+            bW.Dispose();
+            engine.Dispose();            
         }
     }
 }

@@ -13,6 +13,11 @@ using OpenQA.Selenium.Firefox;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Threading;
+using DotNetBrowser;
+using DotNetBrowser.WinForms;
+using DotNetBrowser.Engine;
+using DotNetBrowser.Browser;
+
 namespace myscreenshot
 {
     public partial class Form1 : Form
@@ -21,13 +26,21 @@ namespace myscreenshot
         string PWD = "";
         string OUTPUT_PATH = "";
         //Making driver to navigate
-
+        private readonly IEngine engine;
+        private readonly IBrowser browser;
 
         static FirefoxDriver driver = null;
 
         public Form1()
         {
             InitializeComponent();
+            engine = EngineFactory.Create(new EngineOptions.Builder
+            {
+                LicenseKey = "1BNKDJZJSD1SMGC009ATO3UR0TR4B22ATW9MWYJ6D1OEKCLOFN55VUE43FV6K47MWFA4LY"
+            }
+            .Build());
+            browser = engine.CreateBrowser();
+            bW.InitializeFrom(browser);
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -38,12 +51,13 @@ namespace myscreenshot
                 MessageBox.Show("網址錯了...");
                 return;
             }
-            wB.Navigate(URL);
+            browser.Navigation.LoadUrl(URL);
+            
         }
 
         private void wB_Navigated(object sender, WebBrowserNavigatedEventArgs e)
         {
-            textBox1.Text = wB.Url.ToString();
+            //textBox1.Text = wB.Url.ToString();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -58,11 +72,14 @@ namespace myscreenshot
                     var driverService = FirefoxDriverService.CreateDefaultService();
                     driverService.HideCommandPromptWindow = true; //hide console window
                     var driverOptions = new FirefoxOptions();
+
                     driverOptions.AddArguments("--headless");
                     driverOptions.AddArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; WOW64; rv:56.0) Gecko/20100101 Firefox/66.0");
                     driver = new OpenQA.Selenium.Firefox.FirefoxDriver(driverService, driverOptions);
 
+
                     string URL = textBox1.Text;
+
                     driver.Navigate().GoToUrl(URL);
                     driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(30);
 
@@ -75,16 +92,30 @@ namespace myscreenshot
                     string argument = "/select, \"" + filePath + "\"";
                     System.Diagnostics.Process.Start("explorer.exe", argument);
                     driver.Close();
-                    button1.Text = "抓圖";
+
+                    UpdateUIText(button1, "抓圖");
                     UpdateUIEnable(button1, true);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message + "\r\n" + ex.StackTrace);
-                    button1.Text = "抓圖";
+                    UpdateUIText(button1, "抓圖");
                     UpdateUIEnable(button1, true);
                 }
             }).Start();
+        }
+        private delegate void UpdateUITextCallBack(Control ctl, string value);
+        private void UpdateUIText(Control ctl, string value)
+        {
+            if (this.InvokeRequired)
+            {
+                UpdateUITextCallBack uu = new UpdateUITextCallBack(UpdateUIText);
+                this.Invoke(uu, ctl, value);
+            }
+            else
+            {
+                ctl.Text = value;
+            }
         }
         private delegate void UpdateUIEnableCallBack(Control ctl, bool value);
         private void UpdateUIEnable(Control ctl, bool value)
